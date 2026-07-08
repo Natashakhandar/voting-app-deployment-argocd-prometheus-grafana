@@ -18,8 +18,6 @@ Create a 3-node Kubernetes cluster using Kind with your configuration file:
 ```bash
 kind create cluster --config=config.yml
 ```
-![Cluster Creation](./01-cluster-creation.jpeg)
-![Cluster Configuration](./02-cluster-config.jpeg)
 
 Check the cluster information and verify the nodes are running:
 ```bash
@@ -27,8 +25,6 @@ kubectl cluster-info --context kind-kind
 kubectl get nodes
 kind get clusters
 ```
-![Cluster Info](./03-cluster-info.jpeg)
-![Get Nodes](./04-get-nodes.jpeg)
 
 ---
 
@@ -41,7 +37,6 @@ chmod +x ./kubectl
 sudo mv ./kubectl /usr/local/bin
 kubectl version --short --client
 ```
-![Kubectl Installation](./05-kubectl-install.jpeg)
 
 ---
 
@@ -51,13 +46,11 @@ Check the Docker containers running (these represent our Kind nodes):
 ```bash
 docker ps
 ```
-![Docker PS](./06-docker-ps.jpeg)
 
 List all Kubernetes pods across all namespaces to ensure core components are running:
 ```bash
 kubectl get pods -A
 ```
-![Get Pods](./11-get-pods.jpeg) *(Note: Showing pods state after full deployment)*
 
 ---
 
@@ -68,32 +61,31 @@ Clone the official Docker example voting app repository:
 git clone https://github.com/dockersamples/example-voting-app.git
 cd example-voting-app/
 ```
-![Git Clone](./07-git-clone.jpeg)
-![Navigate Repo](./08-navigate-repo.jpeg)
 
 Apply the Kubernetes YAML specifications to deploy the app components:
 ```bash
 kubectl apply -f k8s-specifications/
 ```
-![Apply Specifications](./09-apply-specs.jpeg)
-![Resource Creation](./10-resource-creation.jpeg)
+
+Verify that the application pods are running:
+```bash
+kubectl get pods
+```
+![Terminal Get Pods](./terminal-get-pods.jpeg)
 
 List all created Kubernetes resources:
 ```bash
 kubectl get all
 ```
-![Get All Resources](./12-get-all.jpeg)
 
 Forward local ports so you can access the Voting and Result web interfaces:
 ```bash
 kubectl port-forward service/vote 5000:5000 --address=0.0.0.0 &
 kubectl port-forward service/result 5001:5001 --address=0.0.0.0 &
 ```
-![Port Forwarding Vote](./13-port-forward-vote.jpeg)
-![Port Forwarding Result](./14-port-forward-result.jpeg)
 
 You can now view the app UI on your local browser.
-![Application UI](./15-app-ui.jpeg)
+![Voting App UI](./voting-app-ui.jpeg)
 
 ---
 
@@ -142,6 +134,8 @@ Retrieve the initial admin password to log into the Argo CD UI:
 kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
 ```
 
+![ArgoCD UI](./argocd-ui.jpeg)
+
 ---
 
 ## 7. Installing Kubernetes Dashboard
@@ -155,6 +149,10 @@ Create an admin-user token to authenticate and log into the Dashboard:
 ```bash
 kubectl -n kubernetes-dashboard create token admin-user
 ```
+
+Once logged in, you can view your workload statuses and lists across namespaces:
+![K8s Dashboard Status](./k8s-dashboard-status.jpeg)
+![K8s Dashboard Workloads](./k8s-dashboard-workloads.jpeg)
 
 ---
 
@@ -184,11 +182,12 @@ kubectl create namespace monitoring
 helm install kind-prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --set prometheus.service.nodePort=30000 --set prometheus.service.type=NodePort --set grafana.service.nodePort=31000 --set grafana.service.type=NodePort --set alertmanager.service.nodePort=32000 --set alertmanager.service.type=NodePort --set prometheus-node-exporter.service.nodePort=32001 --set prometheus-node-exporter.service.type=NodePort
 ```
 
-Verify the services were created in the monitoring namespace:
+Verify the services were created in the monitoring namespace and check Prometheus targets:
 ```bash
 kubectl get svc -n monitoring
 kubectl get namespace
 ```
+![Prometheus Targets](./prom-targets.jpeg)
 
 Port-forward Prometheus and Grafana so you can access their dashboards:
 ```bash
@@ -196,27 +195,40 @@ kubectl port-forward svc/kind-prometheus-kube-prome-prometheus -n monitoring 909
 kubectl port-forward svc/kind-prometheus-grafana -n monitoring 31000:80 --address=0.0.0.0 &
 ```
 
+With Grafana running, you can create, edit, and view comprehensive Kubernetes dashboards:
+![Grafana K8s Dashboard Overview](./grafana-k8s-dash-1.jpeg)
+![Grafana K8s Dashboard Details](./grafana-k8s-dash-2.jpeg)
+![Grafana Bar Chart Editing](./grafana-bar.jpeg)
+![Grafana Line Chart Editing](./grafana-line.jpeg)
+
 ---
 
 ## 10. Useful Prometheus Queries
 
-Once Prometheus is running, you can use these PromQL queries to monitor your cluster's health:
+Once Prometheus is running, you can use these PromQL queries to monitor your cluster's health and visualize the data in graphs:
 
 **CPU Usage Percentage (Default Namespace):**
 ```bash
 sum (rate (container_cpu_usage_seconds_total{namespace="default"}[1m])) / sum (machine_cpu_cores) * 100
 ```
+![Prometheus CPU Graph](./prom-cpu.jpeg)
 
 **Memory Usage by Pod (Default Namespace):**
 ```bash
 sum (container_memory_usage_bytes{namespace="default"}) by (pod)
 ```
+![Prometheus Memory Graph](./prom-memory.jpeg)
 
 **Network Traffic by Pod (Default Namespace):**
 ```bash
 sum(rate(container_network_receive_bytes_total{namespace="default"}[5m])) by (pod)
 sum(rate(container_network_transmit_bytes_total{namespace="default"}[5m])) by (pod)
 ```
+![Prometheus Network Receive](./prom-network-rx.jpeg)
+![Prometheus Network Transmit](./prom-network-tx.jpeg)
+
+You can also run custom queries to analyze specific metrics:
+![Prometheus Custom Query](./prom-query.jpeg)
 
 ---
 
