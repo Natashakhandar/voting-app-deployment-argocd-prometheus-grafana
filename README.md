@@ -56,10 +56,10 @@ kubectl get pods -A
 
 ## 4. Cloning and Running the Example Voting App
 
-Clone the official Docker example voting app repository:
+Clone this repository to your local machine:
 ```bash
-git clone https://github.com/dockersamples/example-voting-app.git
-cd example-voting-app/
+git clone https://github.com/Natashakhandar/voting-app-deployment-argocd-prometheus-grafana.git
+cd voting-app-deployment-argocd-prometheus-grafana/
 ```
 
 Apply the Kubernetes YAML specifications to deploy the app components:
